@@ -17,7 +17,7 @@ LISTS_CATALOG=$SCRIPT_PATH/lists
 # ---------------------------------------------------------------------\
 
 # Check cloudflare zone exists
-echo "Checking zone ${ZONE_NAME} exists in firewalld"
+echo "Checking zone ${ZONE_NAME} exists in"
 _CF_ZONE_STATUS=$(firewall-cmd --list-all --zone=${ZONE_NAME} | head -1)
 
 if [[ "${_CF_ZONE_STATUS}" =~ "${ZONE_NAME}" ]]; then
@@ -25,7 +25,7 @@ if [[ "${_CF_ZONE_STATUS}" =~ "${ZONE_NAME}" ]]; then
 else
     echo "Need to add zone ${ZONE_NAME}"
     firewall-cmd --new-zone=${ZONE_NAME} --permanent
-    firewall-cmd --zone=${ZONE_NAME} --add-service={http, https} --permanent
+    # firewall-cmd --zone=${ZONE_NAME} --add-service={http, https} --permanent
     firewall-cmd --reload
 fi
 
@@ -41,7 +41,9 @@ echo "Downloading IPv6 list..."
 curl -sS https://www.cloudflare.com/ips-v6 >> ${LISTS_CATALOG}/ips.txt
 
 # Add IP addresses to zone
-echo "Update IPs in ${ZONE_NAME}..."
+echo "Update IPs in ${ZONE_NAME} firewalld zone..."
 for i in `<${LISTS_CATALOG}/ips.txt`; do firewall-cmd --zone=${ZONE_NAME} --add-source=$i; done
+
+firewall-cmd --zone=${ZONE_NAME} --add-service=https
 
 echo "Done!"
