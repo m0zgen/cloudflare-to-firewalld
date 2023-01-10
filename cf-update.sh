@@ -37,6 +37,7 @@ fi
 # Download lists
 echo "Downloading IPv4 list..."
 curl -sS https://www.cloudflare.com/ips-v4 > ${LISTS_CATALOG}/ips.txt
+echo -e "\n" >> ${LISTS_CATALOG}/ips.txt
 echo "Downloading IPv6 list..."
 curl -sS https://www.cloudflare.com/ips-v6 >> ${LISTS_CATALOG}/ips.txt
 
