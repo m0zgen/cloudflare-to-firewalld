@@ -38,7 +38,7 @@ fi
 applyFirewall() {
     # Add IP addresses to zone
     echo "Update IPs in ${ZONE_NAME} firewalld zone..."
-    for i in `<${LISTS_CATALOG}/${1}`; do firewall-cmd --zone=${ZONE_NAME} --add-source=$i --permanent; done
+    for i in `<${1}`; do firewall-cmd --zone=${ZONE_NAME} --add-source=$i --permanent; done
     firewall-cmd --reload   
 
 }
