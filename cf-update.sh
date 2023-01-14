@@ -16,6 +16,11 @@ LISTS_CATALOG=$SCRIPT_PATH/lists
 # Action
 # ---------------------------------------------------------------------\
 
+# Check catalog for downloaded ip ranges lists
+if [[ ! -d "${LISTS_CATALOG}" ]]; then
+    mkdir -p ${LISTS_CATALOG}
+fi
+
 # Check cloudflare zone exists
 echo "Checking zone ${ZONE_NAME} exists in"
 _CF_ZONE_STATUS=$(firewall-cmd --list-all --zone=${ZONE_NAME} | head -1)
@@ -30,16 +35,11 @@ else
     firewall-cmd --reload
 fi
 
-# Check catalog for downloaded ip ranges lists
-if [[ ! -d "${LISTS_CATALOG}" ]]; then
-    mkdir -p ${LISTS_CATALOG}
-fi
-
 applyFirewall() {
     # Add IP addresses to zone
     echo "Update IPs in ${ZONE_NAME} firewalld zone..."
     for i in `<${LISTS_CATALOG}/${1}`; do firewall-cmd --zone=${ZONE_NAME} --add-source=$i --permanent; done
-    firewall-cmd --reload
+    firewall-cmd --reload   
 
 }
 
