@@ -25,6 +25,7 @@ if [[ "${_CF_ZONE_STATUS}" =~ "${ZONE_NAME}" ]]; then
 else
     echo "Need to add zone ${ZONE_NAME}"
     firewall-cmd --new-zone=${ZONE_NAME} --permanent
+    firewall-cmd --zone=${ZONE_NAME} --add-service=https --permanent
     # firewall-cmd --zone=${ZONE_NAME} --add-service={http, https} --permanent
     firewall-cmd --reload
 fi
@@ -34,17 +35,44 @@ if [[ ! -d "${LISTS_CATALOG}" ]]; then
     mkdir -p ${LISTS_CATALOG}
 fi
 
-# Download lists
-echo "Downloading IPv4 list..."
-curl -sS https://www.cloudflare.com/ips-v4 > ${LISTS_CATALOG}/ips.txt
-echo -e "\n" >> ${LISTS_CATALOG}/ips.txt
-echo "Downloading IPv6 list..."
-curl -sS https://www.cloudflare.com/ips-v6 >> ${LISTS_CATALOG}/ips.txt
+applyFirewall() {
+    # Add IP addresses to zone
+    echo "Update IPs in ${ZONE_NAME} firewalld zone..."
+    for i in `<${LISTS_CATALOG}/${1}`; do firewall-cmd --zone=${ZONE_NAME} --add-source=$i; done
 
-# Add IP addresses to zone
-echo "Update IPs in ${ZONE_NAME} firewalld zone..."
-for i in `<${LISTS_CATALOG}/ips.txt`; do firewall-cmd --zone=${ZONE_NAME} --add-source=$i; done
+}
 
-firewall-cmd --zone=${ZONE_NAME} --add-service=https
+downloadLists() {
 
-echo "Done!"
+    local _firts=${LISTS_CATALOG}/ips.txt
+    local _last=${LISTS_CATALOG}/ips2.txt
+
+    if [[ -f "${_firts}" ]]; then
+        curl -sS https://www.cloudflare.com/ips-v4 > ${_last}
+        curl -sS https://www.cloudflare.com/ips-v6 >> ${_last}
+
+        diff ${_last} ${_firts} b
+        if [ $? -ne 0 ]; then
+            echo "List is updated..";
+            applyFirewall ${_last}
+        fi
+
+    else
+        curl -sS https://www.cloudflare.com/ips-v4 > ${_firts}
+        curl -sS https://www.cloudflare.com/ips-v6 >> ${_firts}
+        applyFirewall ${_firts}
+    fi
+
+    echo "Done!"
+
+}
+
+# echo "Downloading IPv4 list..."
+# curl -sS https://www.cloudflare.com/ips-v4 > ${LISTS_CATALOG}/ips.txt
+# echo -e "\n" >> ${LISTS_CATALOG}/ips.txt
+# echo "Downloading IPv6 list..."
+# curl -sS https://www.cloudflare.com/ips-v6 >> ${LISTS_CATALOG}/ips.txt
+
+downloadLists
+
+
