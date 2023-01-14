@@ -48,32 +48,30 @@ downloadLists() {
     local _firts=${LISTS_CATALOG}/ips.txt
     local _last=${LISTS_CATALOG}/ips2.txt
 
-    if [[ -f "${_firts}" ]]; then
+    if [[ ! -f "${_firts}" ]]; then
+        echo "List ${_firts} first time will download..."
+        curl -sS https://www.cloudflare.com/ips-v4 > ${_firts}
+        curl -sS https://www.cloudflare.com/ips-v6 >> ${_firts}
+
+        applyFirewall ${_firts}
+
+    else
+        echo "List will download to compare.."
         curl -sS https://www.cloudflare.com/ips-v4 > ${_last}
         curl -sS https://www.cloudflare.com/ips-v6 >> ${_last}
 
-        diff ${_last} ${_firts} b
+        diff ${_last} ${_firts}
         if [ $? -ne 0 ]; then
             echo "List is updated..";
             applyFirewall ${_last}
         fi
 
-    else
-        curl -sS https://www.cloudflare.com/ips-v4 > ${_firts}
-        curl -sS https://www.cloudflare.com/ips-v6 >> ${_firts}
-        applyFirewall ${_firts}
+        rm ${_firts}; mv ${_last} ${_firts}
+
     fi
 
     echo "Done!"
 
 }
 
-# echo "Downloading IPv4 list..."
-# curl -sS https://www.cloudflare.com/ips-v4 > ${LISTS_CATALOG}/ips.txt
-# echo -e "\n" >> ${LISTS_CATALOG}/ips.txt
-# echo "Downloading IPv6 list..."
-# curl -sS https://www.cloudflare.com/ips-v6 >> ${LISTS_CATALOG}/ips.txt
-
 downloadLists
-
-
