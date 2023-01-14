@@ -51,7 +51,7 @@ downloadLists() {
     if [[ ! -f "${_firts}" ]]; then
         echo "List ${_firts} first time will download..."
         curl -sS https://www.cloudflare.com/ips-v4 > ${_firts}
-        echo -e "\n"
+        echo -e "\n" >> ${_firts}
         curl -sS https://www.cloudflare.com/ips-v6 >> ${_firts}
 
         applyFirewall ${_firts}
@@ -59,7 +59,7 @@ downloadLists() {
     else
         echo "List will download to compare.."
         curl -sS https://www.cloudflare.com/ips-v4 > ${_last}
-        echo -e "\n"
+        echo -e "\n" >> ${_last}
         curl -sS https://www.cloudflare.com/ips-v6 >> ${_last}
 
         diff ${_last} ${_firts}
