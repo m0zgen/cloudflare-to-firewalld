@@ -17,6 +17,7 @@ LISTS_CATALOG=$SCRIPT_PATH/lists
 # ---------------------------------------------------------------------\
 
 reloadFirewall() {
+    echo "Reloading firewall.."
     firewall-cmd --reload
 }
 
