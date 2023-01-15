@@ -16,30 +16,38 @@ LISTS_CATALOG=$SCRIPT_PATH/lists
 # Action
 # ---------------------------------------------------------------------\
 
-# Check catalog for downloaded ip ranges lists
-if [[ ! -d "${LISTS_CATALOG}" ]]; then
-    mkdir -p ${LISTS_CATALOG}
-fi
-
-# Check cloudflare zone exists
-echo "Checking zone ${ZONE_NAME} exists in"
-_CF_ZONE_STATUS=$(firewall-cmd --list-all --zone=${ZONE_NAME} | head -1)
-
-if [[ "${_CF_ZONE_STATUS}" =~ "${ZONE_NAME}" ]]; then
-    echo "Zone ${ZONE_NAME} Exist"
-else
-    echo "Need to add zone ${ZONE_NAME}"
-    firewall-cmd --new-zone=${ZONE_NAME} --permanent
-    firewall-cmd --zone=${ZONE_NAME} --add-service=https --permanent
-    # firewall-cmd --zone=${ZONE_NAME} --add-service={http, https} --permanent
+reloadFirewall() {
     firewall-cmd --reload
-fi
+}
+
+initStart() {
+    # Check catalog for downloaded ip ranges lists
+    if [[ ! -d "${LISTS_CATALOG}" ]]; then
+        mkdir -p ${LISTS_CATALOG}
+    fi
+
+    # Check cloudflare zone exists
+    echo "Checking zone ${ZONE_NAME} exists in"
+    _CF_ZONE_STATUS=$(firewall-cmd --list-all --zone=${ZONE_NAME} | head -1)
+
+    if [[ "${_CF_ZONE_STATUS}" =~ "${ZONE_NAME}" ]]; then
+        echo "Zone ${ZONE_NAME} Exist"
+    else
+        echo "Need to add zone ${ZONE_NAME}"
+        firewall-cmd --new-zone=${ZONE_NAME} --permanent
+        firewall-cmd --zone=${ZONE_NAME} --add-service=http --permanent
+        firewall-cmd --zone=${ZONE_NAME} --add-service=https --permanent
+        # firewall-cmd --zone=${ZONE_NAME} --add-service={http, https} --permanent
+        reloadFirewall
+    fi
+
+}
 
 applyFirewall() {
     # Add IP addresses to zone
     echo "Update IPs in ${ZONE_NAME} firewalld zone..."
     for i in `<${1}`; do firewall-cmd --zone=${ZONE_NAME} --add-source=$i --permanent; done
-    firewall-cmd --reload   
+    reloadFirewall  
 
 }
 
@@ -76,4 +84,5 @@ downloadLists() {
 
 }
 
+initStart
 downloadLists
