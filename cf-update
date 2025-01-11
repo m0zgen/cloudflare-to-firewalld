@@ -16,6 +16,14 @@ LISTS_CATALOG=$SCRIPT_PATH/lists
 # Action
 # ---------------------------------------------------------------------\
 
+# Check if firewalld is installed
+checkFirewalld() {
+    if ! command -v firewall-cmd &> /dev/null; then
+        echo "firewalld is not installed. Exiting.."
+        exit 1
+    fi
+}
+
 reloadFirewall() {
     echo "Reloading firewall.."
     firewall-cmd --reload
@@ -85,5 +93,6 @@ downloadLists() {
 
 }
 
+checkFirewalld
 initStart
 downloadLists
